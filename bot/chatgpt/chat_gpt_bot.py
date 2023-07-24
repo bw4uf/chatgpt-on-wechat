@@ -5,6 +5,7 @@ import time
 import openai
 import openai.error
 import requests
+import steamship
 
 from bot.bot import Bot
 from bot.chatgpt.chat_gpt_session import ChatGPTSession
@@ -21,6 +22,10 @@ from config import conf, load_config
 class ChatGPTBot(Bot, OpenAIImage):
     def __init__(self):
         super().__init__()
+
+        self.client = steamship(workspace="gpt-4-bfj")
+        self.generator = self.client.use_plugin('gpt-4')
+
         # set the default api_key
         openai.api_key = conf().get("open_ai_api_key")
         if conf().get("open_ai_api_base"):
@@ -114,13 +119,20 @@ class ChatGPTBot(Bot, OpenAIImage):
             if conf().get("rate_limit_chatgpt") and not self.tb4chatgpt.get_token():
                 raise openai.error.RateLimitError("RateLimitError: rate limit exceeded")
             # if api_key == None, the default openai.api_key will be used
-            response = openai.ChatCompletion.create(api_key=api_key, messages=session.messages, **self.args)
-            # logger.info("[ChatGPT] reply={}, total_tokens={}".format(response.choices[0]['message']['content'], response["usage"]["total_tokens"]))
+
+            task = self.generator.generate(text=session.messages)
+            task.wait()
             return {
-                "total_tokens": response["usage"]["total_tokens"],
-                "completion_tokens": response["usage"]["completion_tokens"],
-                "content": response.choices[0]["message"]["content"],
+                "content": task.output.blocks[0].text,
             }
+
+            # response = openai.ChatCompletion.create(api_key=api_key, messages=session.messages, **self.args)
+            # # logger.info("[ChatGPT] reply={}, total_tokens={}".format(response.choices[0]['message']['content'], response["usage"]["total_tokens"]))
+            # return {
+            #     "total_tokens": response["usage"]["total_tokens"],
+            #     "completion_tokens": response["usage"]["completion_tokens"],
+            #     "content": response.choices[0]["message"]["content"],
+            # }
         except Exception as e:
             need_retry = retry_count < 2
             result = {"completion_tokens": 0, "content": "我现在有点累了，等会再来吧"}
