@@ -157,8 +157,13 @@ available_setting = {
     # 智谱AI 平台配置
     "zhipu_ai_api_key": "",
     "zhipu_ai_api_base": "https://open.bigmodel.cn/api/paas/v4",
+    # Moonshot
     "moonshot_api_key": "",
     "moonshot_base_url":"https://api.moonshot.cn/v1/chat/completions",
+    # DeepSeek
+    "deepseek_api_key": "",
+    "deepseek_base_url":"https://api.deepseek.com/v1/chat/completions",
+
     # LinkAI平台配置
     "use_linkai": False,
     "linkai_api_key": "",
